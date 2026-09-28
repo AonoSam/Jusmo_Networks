@@ -2,7 +2,6 @@ import {
   CheckCircle2,
   Headphones,
   Lightbulb,
-  ShieldCheck,
   Users,
   Wrench,
 } from "lucide-react";
