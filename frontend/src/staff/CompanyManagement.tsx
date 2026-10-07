@@ -1,9 +1,10 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { Save, Upload } from "lucide-react";
+import { Save, Upload, Plus } from "lucide-react";
 
 import { useAuth } from "../hooks/useAuth";
 import {
   getCompany,
+  createCompany,
   updateCompanyDetails,
   updateCompanyLogo,
   type Company,
@@ -39,6 +40,12 @@ const placeholders: Partial<Record<FieldKey, string>> = {
   instagram_url: "https://instagram.com/yourhandle",
 };
 
+const emptyFormValues: Record<FieldKey, string> = {
+  name: "", tagline: "", description: "", mission: "", vision: "", values: "",
+  phone: "", whatsapp: "", email: "", address: "", google_maps_url: "",
+  facebook_url: "", linkedin_url: "", instagram_url: "",
+};
+
 function CompanyManagement() {
   const { user } = useAuth();
   const isSuperAdmin = user?.role === "super_admin";
@@ -46,6 +53,9 @@ function CompanyManagement() {
   const [company, setCompany] = useState<Company | null>(null);
   const [form, setForm] = useState<Partial<CompanyTextFields>>({});
   const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
+  const [creatingNew, setCreatingNew] = useState(false);
+
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -62,7 +72,7 @@ function CompanyManagement() {
         setCompany(data);
         setForm(data);
       } catch (error) {
-        console.error("Failed to load company:", error);
+        setNotFound(true);
       } finally {
         setLoading(false);
       }
@@ -74,17 +84,30 @@ function CompanyManagement() {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
+  const startCreating = () => {
+    setForm(emptyFormValues);
+    setCreatingNew(true);
+    setSaveError(null);
+    setSaveSuccess(false);
+  };
+
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!company) return;
-
     setSaving(true);
     setSaveError(null);
     setSaveSuccess(false);
 
     try {
-      const updated = await updateCompanyDetails(company.id, form);
-      setCompany(updated);
+      if (creatingNew) {
+        const created = await createCompany(form);
+        setCompany(created);
+        setForm(created);
+        setNotFound(false);
+        setCreatingNew(false);
+      } else if (company) {
+        const updated = await updateCompanyDetails(company.id, form);
+        setCompany(updated);
+      }
       setSaveSuccess(true);
     } catch (error: any) {
       setSaveError(
@@ -129,64 +152,90 @@ function CompanyManagement() {
     return <p className="text-navy-300">Loading company information...</p>;
   }
 
-  if (!company) {
-    return <p className="text-navy-300">No company record found.</p>;
+  if (notFound && !creatingNew) {
+    return (
+      <div>
+        <h1 className="text-2xl font-bold text-white">Company</h1>
+        <p className="mt-1 text-sm text-navy-300">
+          Manage your public-facing company information.
+        </p>
+
+        <div className="mt-8 rounded-2xl border border-dashed border-navy-700 bg-navy-950 p-12 text-center">
+          <h2 className="text-lg font-semibold text-white">No company details yet</h2>
+          <p className="mt-2 text-sm text-navy-300">
+            Add your company details now so the public site has real content to display.
+          </p>
+          <button
+            type="button"
+            onClick={startCreating}
+            className="mt-6 inline-flex items-center gap-2 rounded-lg bg-gold-500 px-5 py-2.5 text-sm font-semibold text-navy-950 transition hover:bg-gold-600"
+          >
+            <Plus size={17} />
+            Add Company Details
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div>
       <h1 className="text-2xl font-bold text-white">Company</h1>
       <p className="mt-1 text-sm text-navy-300">
-        Manage your public-facing company information.
+        {creatingNew
+          ? "Add your company's public-facing information below."
+          : "Manage your public-facing company information."}
       </p>
 
-      <div className="mt-8 rounded-2xl border border-navy-800 bg-navy-950 p-6">
-        <h2 className="text-lg font-bold text-white">Company Logo</h2>
+      {!creatingNew && company && (
+        <div className="mt-8 rounded-2xl border border-navy-800 bg-navy-950 p-6">
+          <h2 className="text-lg font-bold text-white">Company Logo</h2>
 
-        <div className="mt-4 flex items-center gap-6">
-          <div className="flex h-24 w-24 items-center justify-center rounded-xl bg-navy-900">
-            {logoPreview ? (
-              <img src={logoPreview} alt="New logo preview" className="max-h-20 max-w-20 object-contain" />
-            ) : company.logo ? (
-              <img src={company.logo} alt={company.name} className="max-h-20 max-w-20 object-contain" />
+          <div className="mt-4 flex items-center gap-6">
+            <div className="flex h-24 w-24 items-center justify-center rounded-xl bg-navy-900">
+              {logoPreview ? (
+                <img src={logoPreview} alt="New logo preview" className="max-h-20 max-w-20 object-contain" />
+              ) : company.logo ? (
+                <img src={company.logo} alt={company.name} className="max-h-20 max-w-20 object-contain" />
+              ) : (
+                <span className="text-xs text-navy-400">No logo</span>
+              )}
+            </div>
+
+            {isSuperAdmin ? (
+              <div>
+                <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-gold-500 px-4 py-2.5 text-sm font-semibold text-navy-950 shadow-sm transition hover:bg-gold-600">
+                  <Upload size={16} />
+                  Choose New Logo
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => handleLogoSelect(e.target.files?.[0] || null)}
+                  />
+                </label>
+
+                {logoFile && (
+                  <button
+                    type="button"
+                    onClick={handleLogoUpload}
+                    disabled={logoSaving}
+                    className="ml-3 rounded-lg border border-gold-500 px-4 py-2.5 text-sm font-semibold text-gold-500 transition hover:bg-gold-500 hover:text-navy-950 disabled:opacity-60"
+                  >
+                    {logoSaving ? "Uploading..." : "Save Logo"}
+                  </button>
+                )}
+
+                {logoError && <p className="mt-2 text-sm text-red-400">{logoError}</p>}
+              </div>
             ) : (
-              <span className="text-xs text-navy-400">No logo</span>
+              <p className="text-sm text-navy-400">
+                Only a Super Admin can change the company logo.
+              </p>
             )}
           </div>
-
-          {isSuperAdmin ? (
-            <div>
-              <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-gold-500 px-4 py-2.5 text-sm font-semibold text-navy-950 shadow-sm transition hover:bg-gold-600">
-                <Upload size={16} />
-                Choose New Logo
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => handleLogoSelect(e.target.files?.[0] || null)}
-                />
-              </label>
-
-              {logoFile && (
-                <button
-                  type="button"
-                  onClick={handleLogoUpload}
-                  disabled={logoSaving}
-                  className="ml-3 rounded-lg border border-gold-500 px-4 py-2.5 text-sm font-semibold text-gold-500 transition hover:bg-gold-500 hover:text-navy-950 disabled:opacity-60"
-                >
-                  {logoSaving ? "Uploading..." : "Save Logo"}
-                </button>
-              )}
-
-              {logoError && <p className="mt-2 text-sm text-red-400">{logoError}</p>}
-            </div>
-          ) : (
-            <p className="text-sm text-navy-400">
-              Only a Super Admin can change the company logo.
-            </p>
-          )}
         </div>
-      </div>
+      )}
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-6">
         {fieldGroups.map((group) => (
@@ -234,18 +283,33 @@ function CompanyManagement() {
 
         {saveSuccess && (
           <div className="rounded-lg border border-green-800 bg-green-950/50 px-4 py-3 text-sm text-green-400">
-            Company information updated successfully.
+            Company information {creatingNew ? "created" : "updated"} successfully.
           </div>
         )}
 
-        <button
-          type="submit"
-          disabled={saving}
-          className="inline-flex items-center gap-2 rounded-lg bg-gold-500 px-6 py-3 text-sm font-semibold text-navy-950 transition hover:bg-gold-600 disabled:opacity-60"
-        >
-          <Save size={16} />
-          {saving ? "Saving..." : "Save Changes"}
-        </button>
+        <div className="flex items-center gap-3">
+          {creatingNew && (
+            <button
+              type="button"
+              onClick={() => {
+                setCreatingNew(false);
+                setSaveError(null);
+              }}
+              className="rounded-lg border border-navy-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-navy-800"
+            >
+              Cancel
+            </button>
+          )}
+
+          <button
+            type="submit"
+            disabled={saving}
+            className="inline-flex items-center gap-2 rounded-lg bg-gold-500 px-6 py-3 text-sm font-semibold text-navy-950 transition hover:bg-gold-600 disabled:opacity-60"
+          >
+            <Save size={16} />
+            {saving ? "Saving..." : creatingNew ? "Create Company" : "Save Changes"}
+          </button>
+        </div>
       </form>
     </div>
   );

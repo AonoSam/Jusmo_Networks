@@ -7,6 +7,7 @@ export interface StaffUser {
   first_name: string;
   last_name: string;
   role: "super_admin" | "manager" | "staff";
+  must_change_password: boolean;
 }
 
 export interface LoginResponse {
@@ -35,4 +36,16 @@ export const staffLogout = async (): Promise<void> => {
 export const getCurrentUser = async (): Promise<StaffUser> => {
   const response = await apiClient.get<StaffUser>("auth/me/");
   return response.data;
+};
+
+export interface ChangePasswordInput {
+  current_password: string;
+  new_password: string;
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+}
+
+export const changePassword = async (data: ChangePasswordInput): Promise<void> => {
+  await apiClient.post("auth/change-password/", data);
 };

@@ -8,7 +8,6 @@ from .models import StaffProfile
 
 
 class StaffTokenObtainPairSerializer(TokenObtainPairSerializer):
-    # ...unchanged, keep as-is...
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
@@ -29,8 +28,27 @@ class StaffTokenObtainPairSerializer(TokenObtainPairSerializer):
             "first_name": self.user.first_name,
             "last_name": self.user.last_name,
             "role": profile.role,
+            "must_change_password": profile.must_change_password,
         }
         return data
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    current_password = serializers.CharField(write_only=True)
+    new_password = serializers.CharField(write_only=True, min_length=8)
+    first_name = serializers.CharField(required=False, allow_blank=True)
+    last_name = serializers.CharField(required=False, allow_blank=True)
+    email = serializers.EmailField(required=False)
+
+    def validate_current_password(self, value):
+        user = self.context["request"].user
+        if not user.check_password(value):
+            raise serializers.ValidationError("Current password is incorrect.")
+        return value
+
+    def validate_new_password(self, value):
+        validate_password(value)
+        return value
 
 
 class CurrentUserSerializer(serializers.Serializer):

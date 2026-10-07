@@ -3,9 +3,8 @@ from django.db import models
 
 from common.models import TimeStampedModel
 
-
 class StaffProfile(TimeStampedModel):
-
+    
     class Role(models.TextChoices):
         SUPER_ADMIN = "super_admin", "Super Admin"
         MANAGER = "manager", "Manager"
@@ -23,8 +22,7 @@ class StaffProfile(TimeStampedModel):
         default=Role.STAFF,
     )
 
+    must_change_password = models.BooleanField(default=False)
+
     def __str__(self):
         return f"{self.user.get_username()} ({self.get_role_display()})"
-    
-    
-    

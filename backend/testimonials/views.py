@@ -5,9 +5,10 @@ from accounts.permissions import IsManagerOrAbove
 
 from .models import Testimonial
 from .serializers import TestimonialSerializer
+from audit.mixins import AuditLogMixin
 
 
-class TestimonialViewSet(viewsets.ModelViewSet):
+class TestimonialViewSet(AuditLogMixin, viewsets.ModelViewSet):
     serializer_class = TestimonialSerializer
 
     http_method_names = ["get", "post", "patch", "delete", "head", "options"]

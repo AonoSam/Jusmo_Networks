@@ -21,6 +21,10 @@ function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
     return <Navigate to="/staff/login" state={{ from: location }} replace />;
   }
 
+  if (user.must_change_password && location.pathname !== "/staff/change-password") {
+    return <Navigate to="/staff/change-password" replace />;
+  }
+
   if (allowedRoles && !allowedRoles.includes(user.role)) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-navy-950">

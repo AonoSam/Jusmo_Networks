@@ -7,9 +7,10 @@ from accounts.permissions import IsManagerOrAbove
 
 from .models import Project, ProjectImage
 from .serializers import ProjectSerializer, ProjectWriteSerializer, ProjectImageSerializer
+from audit.mixins import AuditLogMixin
 
 
-class ProjectViewSet(viewsets.ModelViewSet):
+class ProjectViewSet(AuditLogMixin, viewsets.ModelViewSet):
     lookup_field = "slug"
 
     def get_queryset(self):

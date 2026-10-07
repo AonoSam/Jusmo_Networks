@@ -1,6 +1,7 @@
 from django.db import models
 
 from common.models import TimeStampedModel
+from cloudinary.models import CloudinaryField
 
 
 class Company(TimeStampedModel):
@@ -23,11 +24,12 @@ class Company(TimeStampedModel):
     linkedin_url = models.URLField(blank=True)
     instagram_url = models.URLField(blank=True)
 
-    logo = models.ImageField(
-        upload_to="company/",
-        blank=True,
-        null=True,
-    )
+    logo = CloudinaryField(
+    "logo",
+    folder="jusmo-networks/company",
+    blank=True,
+    null=True,
+)
 
     def __str__(self):
         return self.name

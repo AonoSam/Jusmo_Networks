@@ -5,9 +5,10 @@ from accounts.permissions import IsManagerOrAbove
 
 from .models import Service
 from .serializers import ServiceSerializer
+from audit.mixins import AuditLogMixin
 
 
-class ServiceViewSet(viewsets.ModelViewSet):
+class ServiceViewSet(AuditLogMixin, viewsets.ModelViewSet):
     serializer_class = ServiceSerializer
     lookup_field = "slug"
 

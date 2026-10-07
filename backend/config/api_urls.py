@@ -54,4 +54,5 @@ urlpatterns = [
 urlpatterns = [
     path("auth/", include("accounts.urls")),
     path("analytics/", include("analytics.urls")),
+    path("audit/", include("audit.urls")),
 ] + router.urls

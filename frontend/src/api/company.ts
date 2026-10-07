@@ -27,6 +27,13 @@ export interface Company {
   updated_at: string;
 }
 
+export const createCompany = async (
+  data: Partial<CompanyTextFields>
+): Promise<Company> => {
+  const response = await apiClient.post<Company>("company/", data);
+  return response.data;
+};
+
 export const getCompany = async (): Promise<Company> => {
   const response = await apiClient.get<Company[]>("company/");
 
@@ -46,7 +53,11 @@ export const updateCompanyDetails = async (
   id: number,
   data: Partial<CompanyTextFields>
 ): Promise<Company> => {
-  const response = await apiClient.patch<Company>(`company/${id}/`, data);
+  const response = await apiClient.patch<Company>(
+    `company/${id}/`,
+    data
+  );
+
   return response.data;
 };
 
@@ -59,10 +70,7 @@ export const updateCompanyLogo = async (
 
   const response = await apiClient.patch<Company>(
     `company/${id}/`,
-    formData,
-    {
-      headers: { "Content-Type": "multipart/form-data" },
-    }
+    formData
   );
 
   return response.data;

@@ -14,6 +14,7 @@ interface AuthContextValue {
   loading: boolean;
   login: (credentials: LoginCredentials) => Promise<void>;
   logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -21,6 +22,10 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<StaffUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const refreshUser = async () => {
+  const currentUser = await getCurrentUser();
+  setUser(currentUser);
+};
 
   useEffect(() => {
     const restoreSession = async () => {
@@ -53,7 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return createElement(
     AuthContext.Provider,
-    { value: { user, loading, login, logout } },
+    { value: { user, loading, login, logout, refreshUser } },
     children
   );
 }

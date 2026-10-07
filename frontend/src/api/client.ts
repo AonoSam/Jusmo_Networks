@@ -1,10 +1,7 @@
 import axios from "axios";
 
 const apiClient = axios.create({
-  baseURL: "/api/" ,  //"http://127.0.0.1:8000/api/",
-  headers: {
-    "Content-Type": "application/json",
-  },
+  baseURL: "/api/",
   withCredentials: true,
 });
 
@@ -24,10 +21,17 @@ apiClient.interceptors.response.use(
     ) {
       originalRequest._retry = true;
 
+      const isSafeToReplay =
+        (originalRequest.method || "get").toLowerCase() === "get";
+
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           refreshQueue.push(() => {
-            apiClient(originalRequest).then(resolve).catch(reject);
+            if (isSafeToReplay) {
+              apiClient(originalRequest).then(resolve).catch(reject);
+            } else {
+              reject(error);
+            }
           });
         });
       }
@@ -36,7 +40,7 @@ apiClient.interceptors.response.use(
 
       try {
         await axios.post(
-          "/api/auth/refresh/", //"http://127.0.0.1:8000/api/auth/refresh/",
+          "/api/auth/refresh/",
           {},
           { withCredentials: true }
         );
@@ -44,13 +48,12 @@ apiClient.interceptors.response.use(
         refreshQueue.forEach((cb) => cb());
         refreshQueue = [];
 
-        return apiClient(originalRequest);
+        if (isSafeToReplay) {
+          return apiClient(originalRequest);
+        }
+
+        return Promise.reject(error);
       } catch (refreshError) {
-        // No valid session — just let the original error propagate.
-        // Do NOT force-navigate here: an unauthenticated visitor on the
-        // public site is a completely normal state, not an error to
-        // redirect away from. Protected pages handle their own redirect
-        // via ProtectedRoute once `useAuth`'s user state resolves to null.
         refreshQueue = [];
         return Promise.reject(error);
       } finally {

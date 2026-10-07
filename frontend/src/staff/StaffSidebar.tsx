@@ -1,4 +1,5 @@
 import { NavLink } from "react-router-dom";
+import { ShieldCheck } from "lucide-react";
 import {
   LayoutDashboard,
   Building2,
@@ -24,6 +25,7 @@ const navItems = [
   { name: "Enquiries", path: "/staff/enquiries", icon: Inbox, roles: ["super_admin", "manager", "staff"] },
   { name: "Quotations", path: "/staff/quotations", icon: FileText, roles: ["super_admin", "manager", "staff"] },
   { name: "Staff", path: "/staff/users", icon: Users, roles: ["super_admin"] },
+  { name: "Audit Log", path: "/staff/audit-log", icon: ShieldCheck, roles: ["super_admin"] },
 ];
 
 interface StaffSidebarProps {

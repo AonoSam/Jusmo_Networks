@@ -5,9 +5,10 @@ from accounts.permissions import IsStaffUser
 
 from .models import Enquiry
 from .serializers import EnquiryStaffSerializer, EnquirySerializer
+from audit.mixins import AuditLogMixin
 
 
-class EnquiryViewSet(viewsets.ModelViewSet):
+class EnquiryViewSet(AuditLogMixin, viewsets.ModelViewSet):
     queryset = Enquiry.objects.all()
 
     http_method_names = ["get", "post", "patch", "head", "options"]

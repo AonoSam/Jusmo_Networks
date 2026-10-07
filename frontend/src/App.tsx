@@ -23,6 +23,8 @@ import TestimonialsManagement from "./staff/TestimonialsManagement";
 import EnquiriesManagement from "./staff/EnquiriesManagement";
 import QuotationsManagement from "./staff/QuotationsManagement";
 import StaffManagement from "./staff/StaffManagement";
+import ChangePassword from "./staff/ChangePassword";
+import AuditLog from "./staff/AuditLog";
 
 function App() {
   return (
@@ -44,6 +46,7 @@ function App() {
         <Route element={<ProtectedRoute />}>
           <Route element={<StaffLayout />}>
             <Route path="/staff/dashboard" element={<Dashboard />} />
+            <Route path="/staff/change-password" element={<ChangePassword />} />
             <Route path="/staff/enquiries" element={<EnquiriesManagement />} />
             <Route path="/staff/quotations" element={<QuotationsManagement />} />
           </Route>
@@ -62,6 +65,7 @@ function App() {
         <Route element={<ProtectedRoute allowedRoles={["super_admin"]} />}>
           <Route element={<StaffLayout />}>
             <Route path="/staff/users" element={<StaffManagement />} />
+            <Route path="/staff/audit-log" element={<AuditLog />} />
           </Route>
         </Route>
       </Routes>

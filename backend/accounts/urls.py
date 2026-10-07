@@ -7,19 +7,23 @@ from .views import (
     LogoutView,
     NotificationsView,
     StaffAccountViewSet,
+    ChangePasswordView,
 )
 
-staff_list = StaffAccountViewSet.as_view({"get": "list", "post": "create"})
-staff_detail = StaffAccountViewSet.as_view({
-    "get": "retrieve", "patch": "partial_update", "delete": "destroy"
-})
+from .views import (
+    CurrentUserView, StaffLoginView, CookieTokenRefreshView,
+    LogoutView, NotificationsView, StaffAccountViewSet, ChangePasswordView,
+)
 
 urlpatterns = [
     path("login/", StaffLoginView.as_view(), name="staff-login"),
     path("refresh/", CookieTokenRefreshView.as_view(), name="staff-token-refresh"),
     path("logout/", LogoutView.as_view(), name="staff-logout"),
     path("me/", CurrentUserView.as_view(), name="staff-current-user"),
+    path("change-password/", ChangePasswordView.as_view(), name="staff-change-password"),
     path("notifications/", NotificationsView.as_view(), name="staff-notifications"),
-    path("staff-accounts/", staff_list, name="staff-accounts-list"),
-    path("staff-accounts/<int:pk>/", staff_detail, name="staff-accounts-detail"),
+    path("staff-accounts/", StaffAccountViewSet.as_view({"get": "list", "post": "create"}), name="staff-accounts-list"),
+    path("staff-accounts/<int:pk>/", StaffAccountViewSet.as_view({
+        "get": "retrieve", "patch": "partial_update", "delete": "destroy"
+    }), name="staff-accounts-detail"),
 ]
